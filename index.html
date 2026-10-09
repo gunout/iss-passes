@@ -1,56 +1,1262 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🛰️ Passages ISS — Carte du ciel</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🇫🇷 Cellule Orbitale · Suivi ISS · Ministère de l'Enseignement supérieur et de la Recherche</title>
+<script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
+
+<style>
+/* ============================================================
+   POLICE NASALIZATION
+   ============================================================ */
+@font-face {
+    font-family: 'Nasalization';
+    src: url('fonts/nasalization.ttf') format('truetype'),
+         url('https://cdn.jsdelivr.net/gh/justfont/nasalization@main/Nasalization-Rg.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Nasalization', 'Marianne', 'Segoe UI', system-ui, sans-serif;
+    background: #f6f6f6;
+    color: #1e1e1e;
+    padding: 0 0 16px;
+    min-height: 100vh;
+}
+
+/* ============================================================
+   BANDEAU MARIANNE D'ÉTAT
+   ============================================================ */
+.bandeau-etat {
+    background: #ffffff;
+    border-bottom: 2px solid #000091;
+    position: relative;
+    margin-bottom: 20px;
+}
+.bandeau-etat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(to right, #000091 0 33.33%, #fff 33.33% 66.66%, #E1000F 66.66% 100%);
+}
+.bandeau-etat-content {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 20px;
+}
+.bloc-marianne {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 16px;
+    background: #fff;
+    border-left: 4px solid #000091;
+    border-right: 4px solid #E1000F;
+    flex-shrink: 0;
+}
+.marianne-sceau {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #1212ff, #000091);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Nasalization', sans-serif;
+    font-weight: 800; font-size: 16px;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #000091, 0 4px 12px rgba(0,0,145,.25);
+    letter-spacing: .5px;
+    position: relative;
+}
+.marianne-sceau::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1px dashed rgba(0,0,145,.3);
+}
+.bloc-marque-txt { font-size: 11px; color: #3a3a3a; line-height: 1.4; }
+.bloc-marque-txt .republique {
+    display: block; font-family: 'Nasalization', sans-serif;
+    font-weight: 800; color: #000091;
+    font-size: 15px; letter-spacing: .5px; text-transform: uppercase;
+}
+.bloc-marque-txt .ministere {
+    display: block; font-size: 10px; color: #3a3a3a;
+    margin-top: 2px; letter-spacing: .3px;
+}
+.bloc-marque-txt .direction {
+    display: block; font-size: 9px; color: #929292;
+    margin-top: 2px; text-transform: uppercase; letter-spacing: 1px;
+}
+.bloc-devise {
+    margin-left: auto; text-align: right; font-size: 11px;
+    font-family: 'Nasalization', sans-serif;
+    color: #000091; letter-spacing: 3px; text-transform: uppercase;
+    font-weight: 700; line-height: 1.6;
+}
+.bloc-devise em { display: block; font-style: normal; }
+.bloc-devise .ref-legale {
+    font-family: monospace; font-size: 8px; color: #929292;
+    letter-spacing: .5px; margin-top: 4px; font-weight: 400;
+    text-transform: none;
+}
+.tricolore { position: fixed; top: 0; left: 0; right: 0; height: 4px; display: flex; z-index: 1000; }
+.tricolore span { flex: 1; }
+.tricolore .t-bleu { background: #000091; }
+.tricolore .t-blanc { background: #ffffff; }
+.tricolore .t-rouge { background: #E1000F; }
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header {
+    text-align: center; padding: 25px 20px; margin-bottom: 20px;
+    background: linear-gradient(135deg, #ffffff, #f0f3ff);
+    border-radius: 16px; border: 1px solid #e5e5e5;
+    position: relative; overflow: hidden;
+    max-width: 1200px; margin-left: auto; margin-right: auto;
+}
+.header::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+    background: linear-gradient(90deg, #000091 0%, #000091 33.33%, #ffffff 33.33%, #ffffff 66.66%, #E1000F 66.66%, #E1000F 100%);
+}
+.header h1 {
+    font-family: 'Nasalization', sans-serif;
+    font-size: 2rem; font-weight: 700;
+    letter-spacing: 1.5px;
+    background: linear-gradient(90deg, #000091, #1212ff, #E1000F);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.header p { color: #666; font-size: 0.95rem; margin-top: 6px; }
+
+/* ============================================================
+   MAIN
+   ============================================================ */
+.main-container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+.search-section {
+    background: #ffffff; padding: 18px 20px; border-radius: 16px;
+    border: 1px solid #e5e5e5; margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,145,.04);
+}
+.status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 4px 12px;
+    border-bottom: 1px solid #e5e5e5;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.status-bar .label {
+    color: #929292; font-size: 0.6rem; text-transform: uppercase;
+    letter-spacing: 1.5px; font-weight: 700;
+    font-family: 'Nasalization', sans-serif;
+}
+.status-bar .valeur {
+    font-family: monospace; color: #000091;
+    font-size: 0.95rem; font-weight: 700;
+}
+.status-bar .bloc-horloge {
+    display: flex; flex-direction: column; gap: 2px; text-align: right;
+}
+.status-bar .bloc-horloge .valeur { color: #E1000F; font-size: 1rem; }
+
+/* ============================================================
+   TERMINAL / CARTE ASCII
+   ============================================================ */
+.terminal-frame {
+    background: #f6f6f6;
+    border: 2px solid #000091;
+    border-radius: 12px;
+    padding: 12px;
+    overflow-x: auto;
+    position: relative;
+}
+.terminal-frame::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0,0,145,0.03) 0px,
+      rgba(0,0,145,0.03) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    pointer-events: none;
+    border-radius: 10px;
+    z-index: 2;
+}
+#output {
+    font-family: monospace;
+    font-size: 11px;
+    line-height: 1.05;
+    white-space: pre;
+    color: #1e1e1e;
+    position: relative;
+    z-index: 1;
+}
+#output .line { white-space: pre; }
+.logo    { color: #000091; font-weight: 700; }
+.stars   { color: #E1000F; }
+.land    { color: #1212ff; }
+.land-alt{ color: #6b6bff; }
+.ocean   { color: #f6f6f6; }
+.paris   { color: #E1000F; font-weight: 700; }
+.iss     { color: #16a34a; font-weight: 700; }
+.track   { color: #65a30d; }
+.border  { color: #929292; }
+.footer  { color: #666; margin-top: 6px; font-size: 11px; }
+.legend  { color: #000091; font-weight: 700; }
+
+/* ============================================================
+   TÉLÉMESURES
+   ============================================================ */
+.stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px; margin-top: 14px;
+}
+.stat-card {
+    background: #ffffff; padding: 10px 14px; border-radius: 10px;
+    border: 1px solid #e5e5e5; transition: all 0.3s;
+    box-shadow: 0 1px 3px rgba(0,0,145,.03);
+    border-left: 4px solid #000091;
+}
+.stat-card:hover { border-color: #000091; box-shadow: 0 4px 12px rgba(0,0,145,.08); }
+.stat-card .label {
+    color: #929292; font-size: 0.55rem; text-transform: uppercase;
+    font-family: 'Nasalization', sans-serif;
+    letter-spacing: 0.5px; font-weight: 700;
+}
+.stat-card .value {
+    font-size: 0.95rem; font-weight: 700; margin-top: 3px;
+    font-family: monospace; word-break: break-all; color: #1e1e1e;
+}
+.stat-card .value.bleu { color: #000091; }
+.stat-card .value.rouge { color: #E1000F; }
+.stat-card .value.vert { color: #16a34a; }
+
+/* ============================================================
+   SECTION TITRE
+   ============================================================ */
+.section-title {
+    color: #1e1e1e; font-size: 1rem; font-weight: 700;
+    font-family: 'Nasalization', sans-serif;
+    margin: 16px 0 8px 0; padding-bottom: 5px;
+    border-bottom: 2px solid #e5e5e5;
+    border-image: linear-gradient(90deg, #000091, #ffffff, #E1000F) 1;
+    letter-spacing: 0.5px;
+}
+.section-title .emoji { margin-right: 8px; }
+
+/* ============================================================
+   BOUTONS
+   ============================================================ */
+#controls {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px;
+}
+button {
+    padding: 8px 16px; border-radius: 20px;
+    border: 1px solid #e5e5e5;
+    background: #ffffff; color: #666;
+    font-family: 'Nasalization', sans-serif;
+    font-size: 0.75rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    letter-spacing: 0.5px;
+}
+button:hover { border-color: #000091; color: #000091; background: #e3e3fd; }
+button.btn-primary {
+    background: #000091; color: #fff; border-color: #000091;
+}
+button.btn-primary:hover {
+    background: #E1000F; border-color: #E1000F; color: #fff;
+}
+button.btn-clear { border-color: #E1000F; color: #E1000F; }
+button.btn-clear:hover { background: #ffe9e9; }
+
+/* ============================================================
+   STATUS
+   ============================================================ */
+#status {
+    margin-top: 12px;
+    text-align: center;
+    color: #000091;
+    font-family: 'Nasalization', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    min-height: 1.2em;
+    padding: 8px;
+}
+
+/* ============================================================
+   PASSAGES + COMPTE À REBOURS + CARTE DU CIEL
+   ============================================================ */
+.countdown-box {
+    background: linear-gradient(135deg, #ffffff, #f0f3ff);
+    border: 1px solid #e5e5e5; border-radius: 14px;
+    padding: 18px; text-align: center; margin-bottom: 14px;
+    border-left: 5px solid #E1000F;
+}
+.countdown-box .label {
+    color: #929292; font-size: 0.65rem; text-transform: uppercase;
+    letter-spacing: 1.5px; font-weight: 700;
+}
+.countdown-box #countdown {
+    font-size: 2.2rem; font-weight: 800; color: #E1000F;
+    margin: 6px 0; font-family: monospace;
+}
+.countdown-box #nextInfo { color: #666; font-size: 0.85rem; }
+
+.passes-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    align-items: start;
+}
+@media (max-width: 900px) {
+    .passes-grid { grid-template-columns: 1fr; }
+}
+
+.skymap-wrap {
+    position: relative; width: 320px; height: 320px;
+    margin: 0 auto;
+}
+#skyMap { width: 100%; height: 100%; display: block; }
+.horizon-label {
+    position: absolute; font-weight: 700; color: #000091;
+    font-family: 'Nasalization', sans-serif; font-size: 0.8rem;
+}
+.horizon-label.n { top: -6px; left: 50%; transform: translateX(-50%); }
+.horizon-label.s { bottom: -6px; left: 50%; transform: translateX(-50%); }
+.horizon-label.e { right: -6px; top: 50%; transform: translateY(-50%); }
+.horizon-label.w { left: -6px; top: 50%; transform: translateY(-50%); }
+#skyMapInfo {
+    text-align: center; color: #666; font-size: 0.85rem;
+    margin-top: 10px; font-family: monospace;
+}
+
+.filter-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px; flex-wrap: wrap;
+}
+.filter-row label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.8rem; color: #666; cursor: pointer;
+    font-family: 'Nasalization', sans-serif;
+    letter-spacing: 0.5px;
+}
+.filter-row input[type=checkbox] {
+    accent-color: #000091; width: 16px; height: 16px; cursor: pointer;
+}
+
+.pass-card {
+    background: #ffffff; border-radius: 12px; padding: 14px 16px;
+    margin: 10px 0; border-left: 5px solid #000091;
+    cursor: pointer; transition: all 0.15s;
+    border-top: 1px solid #f0f0f0; border-right: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.pass-card:hover { background: #f9f9ff; box-shadow: 0 2px 8px rgba(0,0,145,.08); }
+.pass-card.visible { border-left-color: #16a34a; }
+.pass-card.best { border-left-color: #E1000F; }
+.pass-card.selected {
+    background: #e3e3fd;
+    box-shadow: 0 0 0 2px #000091;
+}
+.pass-card .time {
+    font-size: 1.05rem; font-weight: 700;
+    font-family: 'Nasalization', sans-serif;
+    color: #1e1e1e; letter-spacing: 0.3px;
+}
+.pass-card .meta {
+    color: #666; font-size: 0.8rem; margin-top: 6px;
+    font-family: monospace; line-height: 1.5;
+}
+.badge {
+    display: inline-block; padding: 2px 8px; border-radius: 99px;
+    font-size: 0.68rem; margin-left: 8px; vertical-align: middle;
+    font-family: 'Nasalization', sans-serif;
+    letter-spacing: 0.5px; font-weight: 700;
+}
+.badge.vis { background: #dcfce7; color: #16a34a; }
+.badge.no  { background: #f1f5f9; color: #64748b; }
+
+/* ============================================================
+   FOOTER OFFICIEL
+   ============================================================ */
+.footer-officiel {
+    background: #fff; border-top: 2px solid #000091;
+    padding: 24px 20px 16px; text-align: center;
+    color: #3a3a3a; font-size: 11px; margin-top: 40px;
+}
+.footer-officiel .devise-footer {
+    font-family: 'Nasalization', sans-serif;
+    font-size: 13px; color: #000091; letter-spacing: 4px;
+    text-transform: uppercase; font-weight: 700; margin-bottom: 8px;
+}
+.footer-officiel .mention-legale {
+    color: #929292; font-size: 9px; font-family: monospace;
+    letter-spacing: .5px; margin-top: 8px; line-height: 1.6;
+}
+.footer-officiel .copyright-footer {
+    margin-top: 10px; font-family: monospace;
+    font-size: 10px; color: #929292;
+}
+.footer-officiel .copyright-footer .sig {
+    font-family: 'Nasalization', sans-serif;
+    font-weight: 700; letter-spacing: 2px;
+    background: linear-gradient(90deg, #000091, #E1000F);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 600px) {
+    .bandeau-etat-content { flex-direction: column; gap: 10px; padding: 10px 12px; }
+    .bloc-devise { margin-left: 0; text-align: center; }
+    .bloc-devise em { display: inline; margin: 0 4px; }
+    .header h1 { font-size: 1.3rem; }
+    .stats-grid { grid-template-columns: 1fr; }
+    #controls button { width: 100%; }
+    .skymap-wrap { width: 260px; height: 260px; }
+    .countdown-box #countdown { font-size: 1.6rem; }
+}
+</style>
 </head>
 <body>
-<header>
-  <h1>🛰️ Passages de l'ISS</h1>
-  <div class="controls">
-    <button id="geoBtn">📍 Utiliser ma position</button>
-    <input id="citySearch" type="text" placeholder="Ou entrez lat,lon (ex: -20.88,55.45)">
-    <label class="switch">
-      <input type="checkbox" id="visibleOnly">
-      <span>Passages visibles uniquement</span>
-    </label>
-    <button id="notifBtn">🔔 Notifications</button>
-  </div>
-  <p id="locationLabel">Position : La Réunion (-20.88, 55.45)</p>
-</header>
 
-<main>
-  <section id="countdownBox">
-    <div class="label">Prochain passage dans</div>
-    <div id="countdown">—</div>
-    <div id="nextInfo"></div>
-  </section>
-
-  <section id="skyMapBox">
-    <h2>🌌 Carte du ciel (vue au‑dessus de vous)</h2>
-    <div class="skymap-wrap">
-      <svg id="skyMap" viewBox="-110 -110 220 220"></svg>
-      <div class="horizon-label n">N</div>
-      <div class="horizon-label e">E</div>
-      <div class="horizon-label s">S</div>
-      <div class="horizon-label w">O</div>
+<!-- ===================== BANDEAU MARIANNE D'ÉTAT ===================== -->
+<div class="bandeau-etat">
+  <div class="bandeau-etat-content">
+    <div class="bloc-marianne">
+      <div class="marianne-sceau">RF</div>
+      <div class="bloc-marque-txt">
+        <span class="republique">République Française</span>
+        <span class="ministere">Ministère de l'Enseignement supérieur<br>et de la Recherche</span>
+        <span class="direction">Cellule orbitale · Suivi ISS · Temps réel</span>
+      </div>
     </div>
-    <div id="skyMapInfo">Sélectionnez un passage ci‑dessous.</div>
-  </section>
+    <div class="bloc-devise">
+      <em>Liberté</em>
+      <em>Égalité</em>
+      <em>Fraternité</em>
+      <div class="ref-legale">Monitor Orbital v2.0 · NORAD 25544 · TLE public</div>
+    </div>
+  </div>
+</div>
 
-  <section id="passesBox">
-    <h2>📅 Prochains passages (72 h)</h2>
-    <div id="list">Chargement…</div>
-  </section>
-</main>
+<div class="tricolore">
+    <span class="t-bleu"></span>
+    <span class="t-blanc"></span>
+    <span class="t-rouge"></span>
+</div>
 
-<footer>
-  <p>Calculs SGP4 côté navigateur · TLE Celestrak · <a href="https://github.com/">Code source</a></p>
+<div class="main-container">
+    <div class="header">
+        <h1>🛰️ Cellule orbitale — Suivi ISS</h1>
+        <p>Carte de situation · Projection équirectangulaire · Passages · Temps réel · 🇫🇷</p>
+    </div>
+
+    <div class="search-section">
+        <div class="status-bar">
+            <div>
+                <div class="label">Source TLE</div>
+                <div class="valeur" id="tle-source">—</div>
+            </div>
+            <div>
+                <div class="label">Grille</div>
+                <div class="valeur">120 × 50</div>
+            </div>
+            <div class="bloc-horloge">
+                <div class="label">Temps Universel Coordonné</div>
+                <div class="valeur" id="horloge-utc">--:--:-- UTC</div>
+            </div>
+        </div>
+
+        <div class="terminal-frame">
+            <div id="output"></div>
+        </div>
+
+        <div class="section-title"><span class="emoji">📊</span> Télémesures orbitales</div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="label">Latitude</div><div class="value vert" id="tm-lat">—</div></div>
+            <div class="stat-card"><div class="label">Longitude</div><div class="value vert" id="tm-lon">—</div></div>
+            <div class="stat-card"><div class="label">Altitude</div><div class="value bleu" id="tm-alt">—</div></div>
+            <div class="stat-card"><div class="label">Vitesse orbitale</div><div class="value bleu" id="tm-vit">—</div></div>
+            <div class="stat-card"><div class="label">Cap (azimut)</div><div class="value rouge" id="tm-cap">—</div></div>
+            <div class="stat-card"><div class="label">Période orbitale</div><div class="value rouge" id="tm-periode">—</div></div>
+        </div>
+
+        <div id="controls">
+            <button class="btn-primary" id="btn-toggle">⏸ Pause</button>
+            <button id="btn-refresh">🔄 Recharger TLE</button>
+            <button class="btn-clear" id="btn-clear">🧹 Effacer trace</button>
+            <button id="btn-geo">📍 Ma position</button>
+        </div>
+    </div>
+
+    <!-- ===================== PASSAGES ===================== -->
+    <div class="search-section">
+        <div class="countdown-box">
+            <div class="label">Prochain passage dans</div>
+            <div id="countdown">—</div>
+            <div id="nextInfo"></div>
+        </div>
+
+        <div class="section-title"><span class="emoji">📅</span> Prochains passages (72 h)</div>
+        <div class="filter-row">
+            <label><input type="checkbox" id="visibleOnly"> Passages visibles uniquement</label>
+            <span id="observerLabel" style="color:#929292;font-size:0.75rem;font-family:monospace">Observateur : La Réunion (-20.88, 55.45)</span>
+        </div>
+
+        <div class="passes-grid">
+            <div id="list">Chargement…</div>
+            <div>
+                <div class="skymap-wrap">
+                    <svg id="skyMap" viewBox="-110 -110 220 220"></svg>
+                    <div class="horizon-label n">N</div>
+                    <div class="horizon-label e">E</div>
+                    <div class="horizon-label s">S</div>
+                    <div class="horizon-label w">O</div>
+                </div>
+                <div id="skyMapInfo">Sélectionnez un passage ci‑contre.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="status">Initialisation des systèmes…</div>
+</div>
+
+<!-- ===================== FOOTER OFFICIEL ===================== -->
+<footer class="footer-officiel">
+  <div class="devise-footer">Liberté · Égalité · Fraternité</div>
+  <div>République Française — Ministère de l'Enseignement supérieur et de la Recherche</div>
+  <div class="mention-legale">
+    Cellule orbitale — Suivi ISS temps réel via TLE public<br>
+    Projection équirectangulaire · Natural Earth 110m · satellite.js · NORAD 25544
+  </div>
+  <div class="copyright-footer">
+    © <span id="copyrightYear">2025</span> · <span class="sig">CELLULE ORBITALE</span> · gunout · Tous droits réservés
+  </div>
 </footer>
 
-<script src="libs/satellite.min.js"></script>
-<script src="app.js"></script>
+<script>
+'use strict';
+
+/* ============================================================
+ *  CONFIGURATION
+ * ============================================================ */
+const COLS = 120;
+const ROWS = 50;
+const ISS_NORAD = 25544;
+const TRACK_MAX = 20;
+const MIN_ELEV = 10;
+const HOURS_WINDOW = 72;
+
+const FALLBACK_TLE = {
+  name: 'ISS (ZARYA)',
+  line1: '1 25544U 98067A   24280.50000000  .00016717  00000-0  30777-3 0  9990',
+  line2: '2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.49815389477874',
+};
+
+const MARKERS = [
+  { name: 'Paris',  lon:   2.35, lat: 48.85, char: 'X', cls: 'paris' },
+  { name: 'Kourou', lon: -52.65, lat:  5.16, char: 'O', cls: 'paris' },
+];
+
+/* ============================================================
+ *  HORLOGE UTC
+ * ============================================================ */
+function majHorloge() {
+  const now = new Date();
+  const hh = String(now.getUTCHours()).padStart(2, '0');
+  const mm = String(now.getUTCMinutes()).padStart(2, '0');
+  const ss = String(now.getUTCSeconds()).padStart(2, '0');
+  document.getElementById('horloge-utc').textContent = `${hh}:${mm}:${ss} UTC`;
+}
+setInterval(majHorloge, 1000);
+majHorloge();
+
+/* ============================================================
+ *  DMS
+ * ============================================================ */
+function toDMS(value, posLabel, negLabel) {
+  const hemi = value >= 0 ? posLabel : negLabel;
+  const abs = Math.abs(value);
+  const d = Math.floor(abs);
+  const mFloat = (abs - d) * 60;
+  const m = Math.floor(mFloat);
+  const s = ((mFloat - m) * 60).toFixed(1);
+  return `${d}° ${String(m).padStart(2,'0')}' ${String(s).padStart(4,'0')}" ${hemi}`;
+}
+
+/* ============================================================
+ *  GEOJSON NATURAL EARTH
+ * ============================================================ */
+let landFeatures = [];
+
+async function loadLand() {
+  const urls = [
+    'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_land.geojson',
+    'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_110m_land.geojson',
+  ];
+  for (const url of urls) {
+    try {
+      const geo = await fetch(url).then(r => r.json());
+      landFeatures = geo.features || [];
+      console.log(`✅ ${landFeatures.length} polygones chargés`);
+      return true;
+    } catch (e) {
+      console.warn(`❌ Échec ${url}`, e);
+    }
+  }
+  return false;
+}
+
+/* ============================================================
+ *  POINT-IN-POLYGON
+ * ============================================================ */
+function pointInRing(lon, lat, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi > lat) !== (yj > lat)) &&
+      (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+function pointInPolygon(lon, lat, polygon) {
+  if (!pointInRing(lon, lat, polygon[0])) return false;
+  for (let i = 1; i < polygon.length; i++) {
+    if (pointInRing(lon, lat, polygon[i])) return false;
+  }
+  return true;
+}
+function isLand(lon, lat) {
+  for (const f of landFeatures) {
+    const g = f.geometry;
+    if (!g) continue;
+    if (g.type === 'Polygon') {
+      if (pointInPolygon(lon, lat, g.coordinates)) return true;
+    } else if (g.type === 'MultiPolygon') {
+      for (const poly of g.coordinates) {
+        if (pointInPolygon(lon, lat, poly)) return true;
+      }
+    }
+  }
+  return false;
+}
+
+/* ============================================================
+ *  GRILLE
+ * ============================================================ */
+function buildGrid() {
+  const grid = [];
+  for (let i = 0; i < ROWS; i++) {
+    const lat = 90 - i * 180 / ROWS;
+    const row = [];
+    for (let j = 0; j < COLS; j++) {
+      const lon = -180 + j * 360 / COLS;
+      const land = isLand(lon, lat);
+      row.push({
+        char: land ? ((i + j) % 2 === 0 ? '•' : '·') : ' ',
+        cls:  land ? ((i + j) % 2 === 0 ? 'land' : 'land-alt') : 'ocean',
+      });
+    }
+    grid.push(row);
+  }
+  return grid;
+}
+function project(lon, lat) {
+  const i = Math.floor((90 - lat) / 180 * ROWS);
+  const j = Math.floor((lon + 180) / 360 * COLS);
+  if (i < 0 || i >= ROWS || j < 0 || j >= COLS) return null;
+  return { i, j };
+}
+
+/* ============================================================
+ *  RENDU GRILLE
+ * ============================================================ */
+let issTrack = [];
+
+function renderGrid(grid, issPos = null) {
+  const g = grid.map(row => row.map(c => ({ ...c })));
+  for (const m of MARKERS) {
+    const p = project(m.lon, m.lat);
+    if (p) { g[p.i][p.j].char = m.char; g[p.i][p.j].cls = m.cls; }
+  }
+  for (const t of issTrack) {
+    const p = project(t.lon, t.lat);
+    if (p && (g[p.i][p.j].char === ' ' || g[p.i][p.j].char === '·' || g[p.i][p.j].char === '•')) {
+      g[p.i][p.j].char = '.';
+      g[p.i][p.j].cls = 'track';
+    }
+  }
+  if (issPos) {
+    const p = project(issPos.lon, issPos.lat);
+    if (p) { g[p.i][p.j].char = '◉'; g[p.i][p.j].cls = 'iss'; }
+  }
+
+  const out = document.getElementById('output');
+  let html = '';
+  html += `<div class="line logo">   ███████ ███████  █████</div>`;
+  html += `<div class="line logo">   ██      ██      ██   ██</div>`;
+  html += `<div class="line logo">   █████   ███████ ███████</div>`;
+  html += `<div class="line logo">   ██           ██ ██   ██</div>`;
+  html += `<div class="line logo">   ███████ ███████ ██   ██</div>`;
+  html += `<div class="line stars">   ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★</div>`;
+  html += `<div class="line">&nbsp;</div>`;
+  html += `<div class="line border">+${'-'.repeat(COLS)}+</div>`;
+  for (let i = 0; i < ROWS; i++) {
+    let line = `<span class="border">|</span>`;
+    for (let j = 0; j < COLS; j++) {
+      const c = g[i][j];
+      const ch = c.char === ' ' ? '&nbsp;' : c.char;
+      line += `<span class="${c.cls}">${ch}</span>`;
+    }
+    line += `<span class="border">|</span>`;
+    html += `<div class="line">${line}</div>`;
+  }
+  html += `<div class="line border">+${'-'.repeat(COLS)}+</div>`;
+  html += `<div class="line footer">`;
+  html += `<span class="iss">◉</span> ISS  `;
+  html += `<span class="track">.</span> Trace  `;
+  html += `<span class="paris">X</span> Paris  `;
+  html += `<span class="paris">O</span> Kourou  `;
+  html += `<span class="land">• ·</span> Terre`;
+  html += `</div>`;
+  out.innerHTML = html;
+}
+
+/* ============================================================
+ *  TÉLÉMESURES
+ * ============================================================ */
+function renderTelemesures(pos) {
+  if (!pos) {
+    ['tm-lat','tm-lon','tm-alt','tm-vit','tm-cap','tm-periode'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+    });
+    return;
+  }
+  document.getElementById('tm-lat').textContent = toDMS(pos.lat, 'N', 'S');
+  document.getElementById('tm-lon').textContent = toDMS(pos.lon, 'E', 'O');
+  document.getElementById('tm-alt').textContent = `${pos.alt.toFixed(1)} km`;
+  document.getElementById('tm-vit').textContent = `${pos.speed.toFixed(3)} km/s`;
+  const cap = ((pos.heading % 360) + 360) % 360;
+  document.getElementById('tm-cap').textContent = `${cap.toFixed(1)}°`;
+  document.getElementById('tm-periode').textContent = `${(pos.period).toFixed(1)} min`;
+}
+
+/* ============================================================
+ *  TLE
+ * ============================================================ */
+let issSatrec = null;
+let paused = false;
+let baseGrid = null;
+
+async function tryFetchTLE(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 6000);
+  try {
+    const resp = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return await resp.text();
+  } catch (e) {
+    clearTimeout(timeout);
+    throw e;
+  }
+}
+
+async function loadTLE() {
+  setStatus('🔄 Chargement du TLE ISS…');
+  issSatrec = null;
+  document.getElementById('tle-source').textContent = '…';
+
+  const sources = [
+    {
+      name: 'ivanstanojevic',
+      url: `https://tle.ivanstanojevic.me/api/tle/${ISS_NORAD}`,
+      parser: (txt) => {
+        const j = JSON.parse(txt);
+        return j.line1 && j.line2 ? { l1: j.line1, l2: j.line2 } : null;
+      }
+    },
+    {
+      name: 'AllOrigins (proxy)',
+      url: `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://celestrak.org/NORAD/elements/gp.php?CATNR=${ISS_NORAD}&FORMAT=TLE`)}`,
+      parser: (txt) => {
+        const lines = txt.trim().split('\n').map(l => l.trim());
+        return lines.length >= 3 ? { l1: lines[1], l2: lines[2] } : null;
+      }
+    },
+    {
+      name: 'Wheretheiss.at',
+      url: `https://api.wheretheiss.at/v1/satellites/${ISS_NORAD}/tles`,
+      parser: (txt) => {
+        const j = JSON.parse(txt);
+        return j.line1 && j.line2 ? { l1: j.line1, l2: j.line2 } : null;
+      }
+    },
+    {
+      name: 'local (data/tle.json)',
+      url: 'data/tle.json',
+      parser: (txt) => {
+        const j = JSON.parse(txt);
+        return j.line1 && j.line2 ? { l1: j.line1, l2: j.line2 } : null;
+      }
+    },
+  ];
+
+  for (const src of sources) {
+    try {
+      console.log(`🌐 Essai ${src.name}…`);
+      const txt = await tryFetchTLE(src.url);
+      const parsed = src.parser(txt);
+      if (parsed) {
+        issSatrec = satellite.twoline2satrec(parsed.l1, parsed.l2);
+        console.log(`✅ TLE ISS chargé depuis ${src.name}`);
+        document.getElementById('tle-source').textContent = src.name;
+        setStatus(`🛰️ Poursuite active — Source : ${src.name}`);
+        // Recalcul des passages dès que le TLE est dispo
+        computePasses(parsed.l1, parsed.l2);
+        return true;
+      }
+    } catch (e) {
+      console.warn(`❌ ${src.name} :`, e.message);
+    }
+  }
+
+  console.warn('⚠️ Toutes les sources ont échoué, TLE local');
+  issSatrec = satellite.twoline2satrec(FALLBACK_TLE.line1, FALLBACK_TLE.line2);
+  document.getElementById('tle-source').textContent = 'local (périmé)';
+  setStatus('⚠️ TLE local (périmé) — position approximative');
+  computePasses(FALLBACK_TLE.line1, FALLBACK_TLE.line2);
+  return true;
+}
+
+/* ============================================================
+ *  POSITION ISS
+ * ============================================================ */
+let lastPos = null;
+
+function computeISSPosition() {
+  if (!issSatrec) return null;
+  const now = new Date();
+  const gmst = satellite.gstime(now);
+  const pv = satellite.propagate(issSatrec, now);
+  if (!pv.position || !pv.velocity) return null;
+  const geo = satellite.eciToGeodetic(pv.position, gmst);
+  const speed = Math.sqrt(
+    pv.velocity.x ** 2 + pv.velocity.y ** 2 + pv.velocity.z ** 2
+  );
+  const meanMotion = issSatrec.no;
+  const period = (2 * Math.PI) / meanMotion;
+  const lat = satellite.degreesLat(geo.latitude);
+  const lon = satellite.degreesLong(geo.longitude);
+
+  let heading = 0;
+  if (lastPos) {
+    const dLon = lon - lastPos.lon;
+    const dLat = lat - lastPos.lat;
+    heading = Math.atan2(dLon, dLat) * 180 / Math.PI;
+    if (heading < 0) heading += 360;
+  }
+  lastPos = { lat, lon };
+
+  return { lat, lon, alt: geo.height, speed, heading, period };
+}
+
+/* ============================================================
+ *  PASSAGES ISS
+ * ============================================================ */
+let observer = { lat: -20.88, lon: 55.45 };
+let passes = [];
+let selectedIndex = -1;
+let nextPass = null;
+let currentSatrec = null;
+
+const fmtTime = d => new Date(d).toLocaleTimeString('fr-FR',
+  { timeZone: 'Indian/Reunion', hour: '2-digit', minute: '2-digit' });
+const fmtDate = d => new Date(d).toLocaleDateString('fr-FR',
+  { timeZone: 'Indian/Reunion', day: '2-digit', month: '2-digit' });
+
+function azToDir(az) {
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSO','SO','OSO','O','ONO','NO','NNO'];
+  return dirs[Math.round(az/22.5) % 16];
+}
+
+function isVisible(satrec, timeISO, obsGd) {
+  const t = new Date(timeISO);
+  const pos = satellite.propagate(satrec, t);
+  if (!pos.position) return false;
+  const sunEci = sunPosition(t);
+  const dot = pos.position.x*sunEci.x + pos.position.y*sunEci.y + pos.position.z*sunEci.z;
+  const issLit = dot < 0;
+  const gmst = satellite.gstime(t);
+  const sunEcf = satellite.eciToEcf(sunEci, gmst);
+  const sunLook = satellite.ecfToLookAngles(obsGd, sunEcf);
+  const sunElev = sunLook.elevation * 180 / Math.PI;
+  const obsDark = sunElev < -6;
+  return issLit && obsDark;
+}
+
+function sunPosition(date) {
+  const jd = date / 86400000 + 2440587.5;
+  const n = jd - 2451545.0;
+  const L = (280.460 + 0.9856474*n) % 360;
+  const g = ((357.528 + 0.9856003*n) % 360) * Math.PI/180;
+  const lambda = (L + 1.915*Math.sin(g) + 0.020*Math.sin(2*g)) * Math.PI/180;
+  const eps = 23.439 * Math.PI/180;
+  const r = 1.00014 - 0.01671*Math.cos(g) - 0.00014*Math.cos(2*g);
+  const AU = 149597870.7;
+  return {
+    x: r*AU*Math.cos(lambda),
+    y: r*AU*Math.cos(eps)*Math.sin(lambda),
+    z: r*AU*Math.sin(eps)*Math.sin(lambda)
+  };
+}
+
+function computePasses(l1, l2) {
+  try {
+    currentSatrec = satellite.twoline2satrec(l1, l2);
+  } catch (e) {
+    console.warn('TLE invalide', e);
+    return;
+  }
+  const now = new Date();
+  const end = new Date(now.getTime() + HOURS_WINDOW*3600*1000);
+  const obsGd = {
+    longitude: observer.lon * Math.PI/180,
+    latitude: observer.lat * Math.PI/180,
+    height: 0.05
+  };
+  const result = [];
+  const step = 30;
+  let t = new Date(now);
+  let inPass = false, pass = null;
+
+  while (t < end) {
+    const pos = satellite.propagate(currentSatrec, t);
+    if (pos.position) {
+      const gmst = satellite.gstime(t);
+      const ecf = satellite.eciToEcf(pos.position, gmst);
+      const look = satellite.ecfToLookAngles(obsGd, ecf);
+      const elev = look.elevation * 180/Math.PI;
+      const az = (look.azimuth * 180/Math.PI + 360) % 360;
+      const range = look.rangeSat;
+
+      if (elev >= MIN_ELEV) {
+        if (!inPass) {
+          inPass = true;
+          pass = {
+            aos: { time: t.toISOString(), azimuthDeg: az },
+            tca: null,
+            los: null,
+            maxElev: -90
+          };
+        }
+        if (elev > pass.maxElev) {
+          pass.maxElev = elev;
+          pass.tca = { time: t.toISOString(), azimuthDeg: az, elevationDeg: elev, rangeKm: range };
+        }
+      } else if (inPass) {
+        inPass = false;
+        pass.los = { time: t.toISOString(), azimuthDeg: az };
+        pass.durationSeconds = (new Date(pass.los.time) - new Date(pass.aos.time)) / 1000;
+        pass.visible = isVisible(currentSatrec, pass.tca.time, obsGd);
+        result.push(pass);
+      }
+    }
+    t = new Date(t.getTime() + step*1000);
+  }
+  result.sort((a,b) => new Date(a.aos.time) - new Date(b.aos.time));
+  passes = result;
+  selectedIndex = -1;
+  renderPasses();
+  updateNextPass();
+}
+
+function renderPasses() {
+  const list = document.getElementById('list');
+  if (!list) return;
+  list.innerHTML = '';
+  const showOnlyVisible = document.getElementById('visibleOnly').checked;
+  const filtered = passes.filter(p => !showOnlyVisible || p.visible);
+
+  if (!filtered.length) {
+    list.innerHTML = '<p style="color:#929292;font-family:monospace;padding:12px">Aucun passage correspondant.</p>';
+    return;
+  }
+  filtered.forEach(p => {
+    const idx = passes.indexOf(p);
+    const el = document.createElement('div');
+    el.className = 'pass-card'
+      + (p.visible ? ' visible' : '')
+      + (p.tca.elevationDeg > 45 ? ' best' : '')
+      + (idx === selectedIndex ? ' selected' : '');
+    el.innerHTML = `
+      <div class="time">
+        ${fmtDate(p.aos.time)} · ${fmtTime(p.aos.time)} → ${fmtTime(p.los.time)}
+        <span class="badge ${p.visible?'vis':'no'}">${p.visible?'VISIBLE':'non visible'}</span>
+      </div>
+      <div class="meta">
+        Culminaison ${fmtTime(p.tca.time)} · élévation ${p.tca.elevationDeg.toFixed(1)}° ·
+        distance ${p.tca.rangeKm.toFixed(0)} km · durée ${p.durationSeconds}s<br>
+        Direction : montée ${azToDir(p.aos.azimuthDeg)} (${p.aos.azimuthDeg.toFixed(0)}°) →
+        culminaison ${azToDir(p.tca.azimuthDeg)} (${p.tca.azimuthDeg.toFixed(0)}°) →
+        descente ${azToDir(p.los.azimuthDeg)} (${p.los.azimuthDeg.toFixed(0)}°)
+      </div>`;
+    el.onclick = () => {
+      selectedIndex = idx;
+      renderPasses();
+      drawSkyMap(p);
+    };
+    list.appendChild(el);
+  });
+}
+
+function updateNextPass() {
+  const now = new Date();
+  nextPass = passes.map(p => new Date(p.aos.time)).find(t => t > now) || null;
+  tickCountdown();
+}
+
+function tickCountdown() {
+  const el = document.getElementById('countdown');
+  const info = document.getElementById('nextInfo');
+  if (!el) return;
+  if (!nextPass) { el.textContent = '—'; if (info) info.textContent = ''; return; }
+  const diff = nextPass - new Date();
+  if (diff <= 0) { updateNextPass(); return; }
+  const h = Math.floor(diff/3600000);
+  const m = Math.floor(diff%3600000/60000);
+  const s = Math.floor(diff%60000/1000);
+  el.textContent = `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+  const p = passes.find(x => new Date(x.aos.time).getTime() === nextPass.getTime());
+  if (p && info) {
+    info.textContent = `${fmtDate(p.aos.time)} à ${fmtTime(p.aos.time)} · `
+      + `élévation max ${p.tca.elevationDeg.toFixed(0)}° · ${p.visible?'✅ visible':'non visible'}`;
+  }
+  setTimeout(tickCountdown, 1000);
+}
+
+/* ============================================================
+ *  CARTE DU CIEL
+ * ============================================================ */
+function drawSkyMap(pass) {
+  const svg = document.getElementById('skyMap');
+  if (!svg) return;
+  svg.innerHTML = '';
+  const NS = 'http://www.w3.org/2000/svg';
+
+  [30,60,90].forEach(elev => {
+    const r = 100 * (1 - elev/90);
+    const c = document.createElementNS(NS,'circle');
+    c.setAttribute('cx',0); c.setAttribute('cy',0); c.setAttribute('r',r);
+    c.setAttribute('fill','none'); c.setAttribute('stroke','#e5e5e5');
+    svg.appendChild(c);
+  });
+  [0,90,180,270].forEach(az => {
+    const a = (az-90)*Math.PI/180;
+    const l = document.createElementNS(NS,'line');
+    l.setAttribute('x1',0); l.setAttribute('y1',0);
+    l.setAttribute('x2',100*Math.cos(a)); l.setAttribute('y2',100*Math.sin(a));
+    l.setAttribute('stroke','#e5e5e5');
+    svg.appendChild(l);
+  });
+
+  if (!currentSatrec) return;
+  const obsGd = {
+    longitude: observer.lon*Math.PI/180,
+    latitude: observer.lat*Math.PI/180,
+    height: 0.05
+  };
+  const t0 = new Date(pass.aos.time), t1 = new Date(pass.los.time);
+  const points = [];
+  for (let t = t0; t <= t1; t = new Date(t.getTime()+5000)) {
+    const pos = satellite.propagate(currentSatrec, t);
+    if (!pos.position) continue;
+    const gmst = satellite.gstime(t);
+    const ecf = satellite.eciToEcf(pos.position, gmst);
+    const look = satellite.ecfToLookAngles(obsGd, ecf);
+    const elev = look.elevation * 180/Math.PI;
+    const az = (look.azimuth * 180/Math.PI + 360) % 360;
+    if (elev < 0) continue;
+    const r = 100 * (1 - elev/90);
+    const a = (az-90)*Math.PI/180;
+    points.push([r*Math.cos(a), r*Math.sin(a)]);
+  }
+
+  if (points.length) {
+    const path = document.createElementNS(NS,'polyline');
+    path.setAttribute('points', points.map(p=>p.join(',')).join(' '));
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke', pass.visible ? '#16a34a' : '#000091');
+    path.setAttribute('stroke-width','2');
+    svg.appendChild(path);
+
+    const dot = document.createElementNS(NS,'circle');
+    const r = 100 * (1 - pass.tca.elevationDeg/90);
+    const a = (pass.tca.azimuthDeg-90)*Math.PI/180;
+    dot.setAttribute('cx', r*Math.cos(a));
+    dot.setAttribute('cy', r*Math.sin(a));
+    dot.setAttribute('r', 4);
+    dot.setAttribute('fill', pass.visible ? '#16a34a' : '#000091');
+    svg.appendChild(dot);
+  }
+
+  const info = document.getElementById('skyMapInfo');
+  if (info) {
+    info.textContent = `${fmtTime(pass.aos.time)} → ${fmtTime(pass.los.time)} · `
+      + `max ${pass.tca.elevationDeg.toFixed(0)}° à ${azToDir(pass.tca.azimuthDeg)}`;
+  }
+}
+
+/* ============================================================
+ *  BOUCLE
+ * ============================================================ */
+let lastUpdate = 0;
+
+function loop(ts) {
+  if (!paused && baseGrid && ts - lastUpdate > 1000) {
+    lastUpdate = ts;
+    const pos = computeISSPosition();
+    if (pos) {
+      issTrack.push({ lon: pos.lon, lat: pos.lat });
+      if (issTrack.length > TRACK_MAX) issTrack.shift();
+    }
+    renderGrid(baseGrid, pos);
+    renderTelemesures(pos);
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ============================================================
+ *  UI
+ * ============================================================ */
+function setStatus(msg) {
+  const el = document.getElementById('status');
+  if (el) el.textContent = msg;
+}
+
+document.getElementById('btn-toggle').addEventListener('click', (e) => {
+  paused = !paused;
+  e.target.textContent = paused ? '▶ Reprendre' : '⏸ Pause';
+});
+
+document.getElementById('btn-refresh').addEventListener('click', async () => {
+  await loadTLE();
+});
+
+document.getElementById('btn-clear').addEventListener('click', () => {
+  issTrack = [];
+  renderGrid(baseGrid, computeISSPosition());
+});
+
+document.getElementById('btn-geo').addEventListener('click', () => {
+  if (!navigator.geolocation) return alert('Géolocalisation non supportée');
+  navigator.geolocation.getCurrentPosition(pos => {
+    observer.lat = pos.coords.latitude;
+    observer.lon = pos.coords.longitude;
+    document.getElementById('observerLabel').textContent =
+      `Observateur : ${observer.lat.toFixed(2)}, ${observer.lon.toFixed(2)} (GPS)`;
+    if (issSatrec) computePasses(
+      satellite.twoline2satrec ? currentSatrec ? '' : '' : '', ''
+    );
+    // Recalcul direct :
+    if (currentSatrec) {
+      // On relance le calcul à partir du satrec déjà construit
+      recalcPassesFromSatrec();
+    }
+  }, err => alert('Position impossible : ' + err.message));
+});
+
+document.getElementById('visibleOnly').addEventListener('change', renderPasses);
+
+function recalcPassesFromSatrec() {
+  if (!currentSatrec) return;
+  // On utilise directement le satrec courant
+  const now = new Date();
+  const end = new Date(now.getTime() + HOURS_WINDOW*3600*1000);
+  const obsGd = {
+    longitude: observer.lon*Math.PI/180,
+    latitude: observer.lat*Math.PI/180,
+    height: 0.05
+  };
+  const result = [];
+  const step = 30;
+  let t = new Date(now);
+  let inPass = false, pass = null;
+  while (t < end) {
+    const pos = satellite.propagate(currentSatrec, t);
+    if (pos.position) {
+      const gmst = satellite.gstime(t);
+      const ecf = satellite.eciToEcf(pos.position, gmst);
+      const look = satellite.ecfToLookAngles(obsGd, ecf);
+      const elev = look.elevation * 180/Math.PI;
+      const az = (look.azimuth * 180/Math.PI + 360) % 360;
+      const range = look.rangeSat;
+      if (elev >= MIN_ELEV) {
+        if (!inPass) {
+          inPass = true;
+          pass = { aos:{time:t.toISOString(),azimuthDeg:az}, tca:null, los:null, maxElev:-90 };
+        }
+        if (elev > pass.maxElev) {
+          pass.maxElev = elev;
+          pass.tca = { time:t.toISOString(), azimuthDeg:az, elevationDeg:elev, rangeKm:range };
+        }
+      } else if (inPass) {
+        inPass = false;
+        pass.los = { time:t.toISOString(), azimuthDeg:az };
+        pass.durationSeconds = (new Date(pass.los.time) - new Date(pass.aos.time))/1000;
+        pass.visible = isVisible(currentSatrec, pass.tca.time, obsGd);
+        result.push(pass);
+      }
+    }
+    t = new Date(t.getTime() + step*1000);
+  }
+  result.sort((a,b) => new Date(a.aos.time) - new Date(b.aos.time));
+  passes = result;
+  selectedIndex = -1;
+  renderPasses();
+  updateNextPass();
+}
+
+/* ============================================================
+ *  DÉMARRAGE
+ * ============================================================ */
+(async function init() {
+  if (typeof satellite === 'undefined') {
+    setStatus('❌ satellite.js non chargé');
+    return;
+  }
+  document.getElementById('copyrightYear').textContent = new Date().getFullYear();
+  setStatus('Chargement de la carte…');
+  const ok = await loadLand();
+  if (!ok) {
+    setStatus('❌ GeoJSON Natural Earth inaccessible');
+    return;
+  }
+  setStatus('Génération de la grille…');
+  baseGrid = buildGrid();
+  renderGrid(baseGrid);
+  await loadTLE();
+  requestAnimationFrame(loop);
+})();
+</script>
+
 </body>
 </html>
