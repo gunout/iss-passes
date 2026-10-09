@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🛰️ Passages ISS — Carte du ciel</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>🛰️ Passages de l'ISS</h1>
+  <div class="controls">
+    <button id="geoBtn">📍 Utiliser ma position</button>
+    <input id="citySearch" type="text" placeholder="Ou entrez lat,lon (ex: -20.88,55.45)">
+    <label class="switch">
+      <input type="checkbox" id="visibleOnly">
+      <span>Passages visibles uniquement</span>
+    </label>
+    <button id="notifBtn">🔔 Notifications</button>
+  </div>
+  <p id="locationLabel">Position : La Réunion (-20.88, 55.45)</p>
+</header>
+
+<main>
+  <section id="countdownBox">
+    <div class="label">Prochain passage dans</div>
+    <div id="countdown">—</div>
+    <div id="nextInfo"></div>
+  </section>
+
+  <section id="skyMapBox">
+    <h2>🌌 Carte du ciel (vue au‑dessus de vous)</h2>
+    <div class="skymap-wrap">
+      <svg id="skyMap" viewBox="-110 -110 220 220"></svg>
+      <div class="horizon-label n">N</div>
+      <div class="horizon-label e">E</div>
+      <div class="horizon-label s">S</div>
+      <div class="horizon-label w">O</div>
+    </div>
+    <div id="skyMapInfo">Sélectionnez un passage ci‑dessous.</div>
+  </section>
+
+  <section id="passesBox">
+    <h2>📅 Prochains passages (72 h)</h2>
+    <div id="list">Chargement…</div>
+  </section>
+</main>
+
+<footer>
+  <p>Calculs SGP4 côté navigateur · TLE Celestrak · <a href="https://github.com/">Code source</a></p>
+</footer>
+
+<script src="libs/satellite.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
